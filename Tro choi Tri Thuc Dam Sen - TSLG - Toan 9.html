@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Trò chơi Đầm Sen Lượng Giác - Toán 9</title>
+  <style>
+    :root {
+      --bg-pond-dark: #093547;
+      --bg-pond-mid: #115c73;
+      --bg-pond-light: #1c859e;
+      --lotus-pink: #ff6b9d;
+      --gold: #ffd13b;
+      --cream: #fffdf8;
+      --text-dark: #152c3d;
+    }
+
+    * {
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: radial-gradient(circle at 50% 20%, var(--bg-pond-light), var(--bg-pond-mid) 58%, var(--bg-pond-dark) 100%);
+      color: var(--text-dark);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    /* ================= KÝ HIỆU PHÂN SỐ CHUẨN TOÁN HỌC ================= */
+    .math-expr {
+      display: inline-flex;
+      align-items: center;
+      vertical-align: middle;
+      font-weight: 800;
+      gap: 4px;
+      margin: 0 3px;
+    }
+
+    .frac {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      vertical-align: middle;
+      line-height: 1.1;
+      padding: 0 4px;
+      font-size: 1.05em;
+    }
+
+    .frac .num {
+      border-bottom: 3px solid currentColor;
+      padding: 0 6px 3px 6px;
+      text-align: center;
+      min-width: 1.5em;
+      font-weight: 800;
+    }
+
+    .frac .den {
+      padding: 3px 6px 0 6px;
+      text-align: center;
+      min-width: 1.5em;
+      font-weight: 800;
+    }
+
+    /* ================= HEADER & BẢNG ĐIỂM ================= */
+    header {
+      background: rgba(7, 40, 56, 0.9);
+      border-bottom: 4px solid rgba(255, 209, 59, 0.7);
+      padding: 12px 24px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+      z-index: 10;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .brand-title {
+      color: #ffffff;
+      font-size: 1.65rem;
+      font-weight: 900;
+      letter-spacing: 0.5px;
+      text-shadow: 0 3px 0 #051e2b;
+      margin: 0;
+    }
+
+    .brand-sub {
+      display: inline-block;
+      background: linear-gradient(180deg, #ffe066, #f5b000);
+      color: #3b2600;
+      font-weight: 800;
+      font-size: 0.92rem;
+      padding: 3px 12px;
+      border-radius: 999px;
+      margin-top: 4px;
+      box-shadow: 0 3px 0 #9e6f00;
+    }
+
+    .top-controls {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .pill-3d {
+      border: 2px solid #ffffff;
+      border-radius: 16px;
+      padding: 8px 18px;
+      font-size: 1.15rem;
+      font-weight: 900;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      transition: transform 0.12s ease;
+    }
+
+    .pill-gold {
+      background: linear-gradient(180deg, #ffe066, #f5b000);
+      color: #3d2800;
+      box-shadow: 0 5px 0 #a37200, 0 8px 14px rgba(0,0,0,0.3);
+    }
+
+    .pill-blue {
+      background: linear-gradient(180deg, #4cc9f0, #2b7de9);
+      color: #ffffff;
+      box-shadow: 0 5px 0 #174aa6, 0 8px 14px rgba(0,0,0,0.3);
+    }
+
+    .pill-3d:active {
+      transform: translateY(4px);
+    }
+
+    .lotus-tracker {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.14);
+      padding: 6px 14px;
+      border-radius: 999px;
+      border: 1.5px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .lotus-step {
+      width: 38px;
+      height: 38px;
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .lotus-step.active {
+      transform: scale(1.22);
+      filter: drop-shadow(0 0 8px #ffd13b);
+    }
+
+    /* ================= KHUNG NỘI DUNG CHÍNH ================= */
+    main {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 18px;
+      z-index: 5;
+    }
+
+    .card-stage {
+      width: 100%;
+      max-width: 1120px;
+      background: var(--cream);
+      border-radius: 28px;
+      border: 5px solid #ffffff;
+      box-shadow: 0 12px 0 #b8d0d8, 0 22px 42px rgba(0, 0, 0, 0.45);
+      padding: 24px 32px;
+      position: relative;
+    }
+
+    .badge-tag {
+      display: inline-block;
+      background: #ffe3ec;
+      color: #c9184a;
+      border: 2px solid #ff8fa3;
+      font-weight: 800;
+      font-size: 1.05rem;
+      padding: 6px 16px;
+      border-radius: 999px;
+      margin-bottom: 14px;
+    }
+
+    /* Bố cục Câu hỏi + Hình vẽ Tam giác vuông */
+    .quiz-top-layout {
+      display: grid;
+      grid-template-columns: 1.35fr 0.95fr;
+      gap: 18px;
+      align-items: stretch;
+      margin-bottom: 20px;
+    }
+
+    .question-box {
+      background: #eef7fa;
+      border: 3px solid #bde0fe;
+      border-radius: 22px;
+      padding: 20px 24px;
+      font-size: 1.62rem;
+      font-weight: 800;
+      line-height: 1.55;
+      color: #0d2b3e;
+      display: flex;
+      align-items: center;
+      box-shadow: inset 0 3px 8px rgba(0, 0, 0, 0.05);
+    }
+
+    .figure-box {
+      background: #ffffff;
+      border: 3px solid #bde0fe;
+      border-radius: 22px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      box-shadow: inset 0 3px 8px rgba(0, 0, 0, 0.04);
+    }
+
+    /* Lưới 4 đáp án A, B, C, D */
+    .options-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .option-btn {
+      background: linear-gradient(180deg, #ffffff 0%, #f1f7fa 100%);
+      border: 3px solid #90bed4;
+      border-radius: 20px;
+      padding: 14px 22px;
+      font-size: 1.55rem;
+      font-weight: 800;
+      color: #123447;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      cursor: pointer;
+      box-shadow: 0 8px 0 #669bb5, 0 12px 20px rgba(0, 0, 0, 0.14);
+      transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.2s;
+      text-align: left;
+    }
+
+    .option-btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      border-color: #3a86ff;
+    }
+
+    .option-btn:active:not(:disabled) {
+      transform: translateY(5px);
+      box-shadow: 0 3px 0 #669bb5;
+    }
+
+    .option-btn:disabled {
+      cursor: default;
+    }
+
+    .opt-letter {
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      background: linear-gradient(180deg, #ff7eb3, #e63976);
+      color: #ffffff;
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 1.35rem;
+      font-weight: 900;
+      flex-shrink: 0;
+      box-shadow: 0 4px 0 #9e1946;
+    }
+
+    /* Trạng thái Đúng / Sai sau khi khóa */
+    .option-btn.correct {
+      background: linear-gradient(180deg, #d8f3dc 0%, #95d5b2 100%);
+      border-color: #2d6a4f;
+      color: #081c15;
+      box-shadow: 0 8px 0 #1b4332;
+    }
+
+    .option-btn.correct .opt-letter {
+      background: linear-gradient(180deg, #40916c, #1b4332);
+      box-shadow: 0 4px 0 #081c15;
+    }
+
+    .option-btn.wrong {
+      background: linear-gradient(180deg, #ffccd5 0%, #ffb3c1 100%);
+      border-color: #c9184a;
+      color: #590d22;
+      box-shadow: 0 8px 0 #800f2f;
+    }
+
+    .option-btn.wrong .opt-letter {
+      background: linear-gradient(180deg, #ff4d6d, #a4133c);
+      box-shadow: 0 4px 0 #590d22;
+    }
+
+    .option-btn.dimmed {
+      opacity: 0.55;
+    }
+
+    /* Hộp gợi ý & giải thích */
+    .feedback-panel {
+      border-radius: 18px;
+      padding: 16px 22px;
+      margin-bottom: 18px;
+      font-size: 1.35rem;
+      line-height: 1.6;
+      display: none;
+      animation: popIn 0.25s ease-out;
+    }
+
+    .feedback-hint {
+      background: #fff9db;
+      border: 3px dashed #f59f00;
+      color: #5c3c00;
+    }
+
+    .feedback-correct {
+      background: #e6fcf5;
+      border: 3px solid #20c997;
+      color: #084c3a;
+    }
+
+    .feedback-wrong {
+      background: #fff0f3;
+      border: 3px solid #ff4d6d;
+      color: #640d22;
+    }
+
+    @keyframes popIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .action-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .btn-action {
+      border: none;
+      border-radius: 18px;
+      padding: 14px 28px;
+      font-size: 1.35rem;
+      font-weight: 900;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      transition: transform 0.12s ease;
+    }
+
+    .btn-action:active {
+      transform: translateY(5px);
+    }
+
+    .btn-hint {
+      background: linear-gradient(180deg, #ffec99, #fcc419);
+      color: #4a3000;
+      box-shadow: 0 6px 0 #b88200;
+    }
+
+    .btn-next {
+      background: linear-gradient(180deg, #51cf66, #2b8a3e);
+      color: #ffffff;
+      box-shadow: 0 6px 0 #1b5e20;
+      margin-left: auto;
+    }
+
+    .btn-start {
+      background: linear-gradient(180deg, #ff758f, #c9184a);
+      color: #ffffff;
+      font-size: 1.6rem;
+      padding: 16px 38px;
+      box-shadow: 0 8px 0 #800f2f, 0 14px 24px rgba(0, 0, 0, 0.3);
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .center-screen {
+      text-align: center;
+      padding: 10px 16px;
+    }
+
+    .hero-title {
+      font-size: 2.4rem;
+      font-weight: 900;
+      color: #c9184a;
+      margin: 10px 0;
+    }
+
+    .lead-box {
+      background: #eef7fa;
+      border: 3px solid #90e0ef;
+      border-radius: 20px;
+      padding: 18px 26px;
+      font-size: 1.32rem;
+      line-height: 1.65;
+      text-align: left;
+      margin: 18px auto;
+      max-width: 880px;
+    }
+
+    .poem-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px 24px;
+      background: #fff9db;
+      border: 2px dashed #f59f00;
+      padding: 14px 20px;
+      border-radius: 16px;
+      margin-top: 12px;
+      font-weight: 800;
+      color: #5c3c00;
+    }
+
+    @media (max-width: 860px) {
+      .quiz-top-layout {
+        grid-template-columns: 1fr;
+      }
+      .options-grid {
+        grid-template-columns: 1fr;
+      }
+      .question-box {
+        font-size: 1.38rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- THANH ĐẦU TRANG -->
+  <header>
+    <div class="brand">
+      <svg width="54" height="54" viewBox="0 0 64 64">
+        <ellipse cx="32" cy="52" rx="26" ry="8" fill="#2ecc71" stroke="#1b7a43" stroke-width="2.5"/>
+        <path d="M32 10 C22 24 20 40 32 48 C44 40 42 24 32 10 Z" fill="#ff6b9d" stroke="#a4133c" stroke-width="2"/>
+        <path d="M32 48 C16 44 10 28 18 18 C24 26 24 38 32 48 Z" fill="#ff8fa3" stroke="#a4133c" stroke-width="2"/>
+        <path d="M32 48 C48 44 54 28 46 18 C40 26 40 38 32 48 Z" fill="#ff8fa3" stroke="#a4133c" stroke-width="2"/>
+        <circle cx="32" cy="30" r="4.5" fill="#ffd13b"/>
+      </svg>
+      <div>
+        <h1 class="brand-title">ĐẦM SEN LƯỢNG GIÁC</h1>
+        <span class="brand-sub">Toán 9 • Nhận dạng sin, cos, tan, cot</span>
+      </div>
+    </div>
+
+    <div class="top-controls">
+      <div class="pill-3d pill-gold" id="scoreDisplay">⭐ Điểm: 0 / 100</div>
+      <button class="pill-3d pill-blue" onclick="toggleRules()">📜 Luật chơi</button>
+      <button class="pill-3d pill-gold" id="btnSound" onclick="toggleSound()">🔊 Âm thanh: Bật</button>
+      <div class="lotus-tracker" id="lotusTracker"></div>
+    </div>
+  </header>
+
+  <!-- SÂN KHẤU CHÍNH -->
+  <main>
+    <div class="card-stage">
+
+      <!-- 1. MÀN HÌNH BẮT ĐẦU -->
+      <div id="screenStart" class="center-screen">
+        <span class="badge-tag">🌸 Khởi động &amp; Kiểm tra nhanh (5 – 7 phút)</span>
+        <h2 class="hero-title">Thử Thách Nhận Dạng Tỉ Số Lượng Giác</h2>
+        <div class="lead-box">
+          <p><strong>🎯 Mục tiêu:</strong> Nhận diện nhanh cạnh đối, cạnh kề, cạnh huyền và xác định chính xác 4 tỉ số lượng giác <strong>sin, cos, tan, cot</strong> của góc nhọn trong tam giác vuông.</p>
+          <div class="poem-grid">
+            <div>• <strong>sin</strong> = Đối / Huyền (Đi học)</div>
+            <div>• <strong>cos</strong> = Kề / Huyền (Không hư)</div>
+            <div>• <strong>tan</strong> = Đối / Kề (Đoàn kết)</div>
+            <div>• <strong>cot</strong> = Kề / Đối (Kết đoàn)</div>
+          </div>
+          <p style="margin-bottom:0;"><strong>⚡ Quy tắc 1 lần chọn:</strong> Mỗi câu hỏi học sinh <strong>chỉ được chọn đáp án 1 lần duy nhất</strong>. Ngay khi bấm chọn, hệ thống sẽ báo Đúng/Sai, hiện giải thích chi tiết và mở nút qua câu tiếp theo!</p>
+        </div>
+        <button class="btn-action btn-start" onclick="startGame()">🌸 Bắt đầu thử thách</button>
+      </div>
+
+      <!-- 2. MÀN HÌNH CÂU HỎI -->
+      <div id="screenQuiz" class="hidden">
+        <span class="badge-tag" id="questionTag">Câu 1 / 5</span>
+
+        <div class="quiz-top-layout">
+          <div class="question-box" id="questionText"></div>
+          <div class="figure-box" id="figureContainer"></div>
+        </div>
+
+        <div class="options-grid" id="optionsContainer"></div>
+
+        <!-- Hộp gợi ý -->
+        <div class="feedback-panel feedback-hint" id="hintBox"></div>
+
+        <!-- Hộp giải thích Đúng/Sai -->
+        <div class="feedback-panel" id="explanationBox"></div>
+
+        <div class="action-bar">
+          <button class="btn-action btn-hint" id="btnShowHint" onclick="showHint()">💡 Gợi ý</button>
+          <button class="btn-action btn-next hidden" id="btnNextQuestion" onclick="nextQuestion()">Câu tiếp theo ➔</button>
+        </div>
+      </div>
+
+      <!-- 3. MÀN HÌNH TỔNG KẾT -->
+      <div id="screenEnd" class="center-screen hidden">
+        <span class="badge-tag">🎉 Hoàn thành 5 câu hỏi lượng giác!</span>
+        <h2 class="hero-title">Tổng Kết Đầm Sen Lượng Giác</h2>
+        <p style="font-size: 1.65rem; font-weight: 900; color: #115c73;" id="finalScoreText"></p>
+
+        <div class="lead-box">
+          <p><strong>📌 Ghi nhớ cốt lõi khi làm bài:</strong></p>
+          <p>1. Luôn xác định đúng <strong>góc nhọn đang xét</strong> (góc B hay góc C) vì khi đổi góc nhọn thì <strong>cạnh đối</strong> và <strong>cạnh kề</strong> sẽ đổi chỗ cho nhau (cạnh huyền luôn đối diện góc vuông).</p>
+          <p>2. Tỉ số lượng giác của góc nhọn luôn dương và <strong>sin α &lt; 1, cos α &lt; 1</strong> (do cạnh góc vuông luôn nhỏ hơn cạnh huyền).</p>
+        </div>
+
+        <button class="btn-action btn-start" onclick="startGame()">🔄 Chơi lại từ đầu</button>
+      </div>
+
+    </div>
+  </main>
+
+  <script>
+    /* =========================================================================
+       HÀM TẠO PHÂN SỐ CHUẨN TOÁN HỌC (TỬ TRÊN - GẠCH NGANG - MẪU DƯỚI)
+       Ví dụ: frac('AC', 'BC') hoặc frac(3, 5)
+       ========================================================================= */
+    function frac(num, den) {
+      return `<span class="math-expr"><span class="frac"><span class="num">${num}</span><span class="den">${den}</span></span></span>`;
+    }
+
+    /* =========================================================================
+       HÀM VẼ TAM GIÁC VUÔNG ABC (VUÔNG TẠI A) TỰ ĐỘNG THEO TỪNG CÂU HỎI
+       - highlightAngle: 'B' hoặc 'C' (vẽ cung tròn màu hồng tại góc đang xét)
+       - c_label: nhãn cạnh AB, b_label: nhãn cạnh AC, a_label: nhãn cạnh BC
+       ========================================================================= */
+    function drawTriangleSVG({ highlightAngle = 'B', c_label = '', b_label = '', a_label = '' }) {
+      const arcB = highlightAngle === 'B'
+        ? `<path d="M 192 155 A 38 38 0 0 1 200 132" fill="rgba(255,107,157,0.28)" stroke="#d81b60" stroke-width="3"/>
+           <text x="166" y="146" fill="#d81b60" font-size="16" font-weight="900">B</text>`
+        : '';
+
+      const arcC = highlightAngle === 'C'
+        ? `<path d="M 60 66 A 34 34 0 0 0 82 48" fill="rgba(255,107,157,0.28)" stroke="#d81b60" stroke-width="3"/>`
+        : '';
+
+      return `
+        <svg width="280" height="190" viewBox="0 0 280 190">
+          <!-- Nền tam giác -->
+          <polygon points="60,155 60,35 230,155" fill="#e3f2fd" stroke="#1565c0" stroke-width="3.5" stroke-linejoin="round"/>
+          <!-- Ký hiệu góc vuông tại A -->
+          <polyline points="60,137 78,137 78,155" fill="none" stroke="#d32f2f" stroke-width="2.5"/>
+          <circle cx="69" cy="146" r="2" fill="#d32f2f"/>
+
+          <!-- Cung góc nhọn đang xét -->
+          ${arcB}
+          ${arcC}
+
+          <!-- Tên 3 đỉnh A, B, C -->
+          <text x="36" y="168" fill="#0d2b3e" font-size="19" font-weight="900">A</text>
+          <text x="240" y="168" fill="#0d2b3e" font-size="19" font-weight="900">B</text>
+          <text x="45" y="26" fill="#0d2b3e" font-size="19" font-weight="900">C</text>
+
+          <!-- Nhãn độ dài / vai trò các cạnh -->
+          <text x="138" y="178" fill="#c9184a" font-size="16" font-weight="800" text-anchor="middle">${c_label}</text>
+          <text x="28" y="100" fill="#1b4332" font-size="16" font-weight="800" text-anchor="middle">${b_label}</text>
+          <text x="162" y="84" fill="#0d47a1" font-size="16" font-weight="800" text-anchor="middle">${a_label}</text>
+        </svg>
+      `;
+    }
+
+    /* =========================================================================
+       KHU VỰC DỮ LIỆU CÂU HỎI (GIÁO VIÊN CHỈNH SỬA TẠI ĐÂY)
+       - correct: 0 là A, 1 là B, 2 là C, 3 là D
+       ========================================================================= */
+    const QUESTIONS = [
+      {
+        level: "Câu 1/5 • Nhận dạng tỉ số sin (Cạnh đối & Cạnh huyền)",
+        question: `Cho tam giác ABC vuông tại A. Tỉ số lượng giác <strong>sin B</strong> được xác định bởi công thức nào?`,
+        svgConfig: { highlightAngle: 'B', c_label: 'Cạnh kề', b_label: 'Đối', a_label: 'Cạnh huyền' },
+        options: [
+          `${frac('AC', 'BC')}`,
+          `${frac('AB', 'BC')}`,
+          `${frac('AC', 'AB')}`,
+          `${frac('AB', 'AC')}`
+        ],
+        correct: 0, // Đáp án A
+        hint: `Ghi nhớ: "Tìm sin lấy ĐỐI chia HUYỀN". Đối diện với góc B là cạnh AC, cạnh huyền là BC.`,
+        explanation: `Xét góc nhọn B: cạnh đối là <strong>AC</strong>, cạnh huyền là <strong>BC</strong>. Do đó <strong>sin B = ${frac('Cạnh đối', 'Cạnh huyền')} = ${frac('AC', 'BC')}</strong>.`
+      },
+      {
+        level: "Câu 2/5 • Nhận dạng tỉ số cos khi đổi góc nhọn",
+        question: `Cho tam giác ABC vuông tại A. Tỉ số lượng giác <strong>cos C</strong> bằng tỉ số nào dưới đây?`,
+        svgConfig: { highlightAngle: 'C', c_label: 'Cạnh đối', b_label: 'Kề', a_label: 'Cạnh huyền' },
+        options: [
+          `${frac('AB', 'BC')}`,
+          `${frac('AC', 'BC')}`,
+          `${frac('AC', 'AB')}`,
+          `${frac('BC', 'AC')}`
+        ],
+        correct: 1, // Đáp án B
+        hint: `Chú ý đề bài hỏi góc C! Kề với góc nhọn C là cạnh AC, cạnh huyền là BC ("Cô-sin hai cạnh KỀ - HUYỀN chia nhau").`,
+        explanation: `Đối với góc nhọn C: cạnh kề là <strong>AC</strong> và cạnh huyền là <strong>BC</strong>. Suy ra <strong>cos C = ${frac('Cạnh kề', 'Cạnh huyền')} = ${frac('AC', 'BC')}</strong>.`
+      },
+      {
+        level: "Câu 3/5 • Nhận dạng tên gọi từ tỉ số hai cạnh góc vuông",
+        question: `Trong tam giác ABC vuông tại A, tỉ số ${frac('AB', 'AC')} là tỉ số lượng giác nào của <strong>góc B</strong>?`,
+        svgConfig: { highlightAngle: 'B', c_label: 'AB (Kề)', b_label: 'AC (Đối)', a_label: 'BC (Huyền)' },
+        options: [
+          `sin B`,
+          `cos B`,
+          `tan B`,
+          `cot B`
+        ],
+        correct: 3, // Đáp án D
+        hint: `Xét góc B: cạnh AB là cạnh kề, cạnh AC là cạnh đối. Tỉ số "Kề chia Đối" là tỉ số lượng giác nào?`,
+        explanation: `Với góc B, <strong>AB</strong> là cạnh kề và <strong>AC</strong> là cạnh đối. Ta có ${frac('AB', 'AC')} = ${frac('Cạnh kề', 'Cạnh đối')} = <strong>cot B</strong>.`
+      },
+      {
+        level: "Câu 4/5 • Tính tỉ số lượng giác từ số đo 3 cạnh",
+        question: `Cho tam giác ABC vuông tại A có AB = 4 cm, AC = 3 cm, BC = 5 cm. Giá trị của <strong>tan B</strong> là:`,
+        svgConfig: { highlightAngle: 'B', c_label: 'AB = 4', b_label: '3', a_label: 'BC = 5' },
+        options: [
+          `${frac(3, 5)}`,
+          `${frac(4, 5)}`,
+          `${frac(3, 4)}`,
+          `${frac(4, 3)}`
+        ],
+        correct: 2, // Đáp án C
+        hint: `"Còn tan ta hãy tính sau – Đối trên, kề dưới chia nhau ra liền". Hãy xác định cạnh đối và cạnh kề của góc B!`,
+        explanation: `Xét góc B: cạnh đối là AC = 3 cm, cạnh kề là AB = 4 cm. Vậy <strong>tan B = ${frac('AC', 'AB')} = ${frac(3, 4)}</strong>.`
+      },
+      {
+        level: "Câu 5/5 • Bài toán thực tế (Tình huống ứng dụng)",
+        question: `Một chiếc thang dài 5 m (BC = 5 m) tựa vào tường thẳng đứng, chân thang cách chân tường 3 m (AB = 3 m). Để tìm góc nghiêng B của thang so với mặt đất, ta dùng tỉ số nào?`,
+        svgConfig: { highlightAngle: 'B', c_label: 'Đất: 3 m', b_label: 'Tường', a_label: 'Thang: 5 m' },
+        options: [
+          `sin B = ${frac(3, 5)}`,
+          `cos B = ${frac(3, 5)}`,
+          `tan B = ${frac(3, 5)}`,
+          `cot B = ${frac(3, 5)}`
+        ],
+        correct: 1, // Đáp án B
+        hint: `So với góc nghiêng B ở chân thang: khoảng cách trên mặt đất AB = 3 m là cạnh kề, chiều dài thang BC = 5 m là cạnh huyền.`,
+        explanation: `Biết cạnh kề AB = 3 m và cạnh huyền BC = 5 m của góc B, ta dùng tỉ số cô-sin: <strong>cos B = ${frac('AB', 'BC')} = ${frac(3, 5)}</strong>.`
+      }
+    ];
+
+    /* =========================================================================
+       BIẾN TRẠNG THÁI & ÂM THANH WEB AUDIO API (NGOẠI TUYẾN 100%)
+       ========================================================================= */
+    let currentIndex = 0;
+    let score = 0;
+    let isQuestionLocked = false; // Khóa ngay sau lần chọn đầu tiên
+    let soundEnabled = true;
+    let lotusStates = [];
+    let audioCtx = null;
+
+    function playSound(type) {
+      if (!soundEnabled) return;
+      try {
+        if (!audioCtx) {
+          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioCtx.state === 'suspended') {
+          audioCtx.resume();
+        }
+        const now = audioCtx.currentTime;
+
+        if (type === 'click') {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(540, now);
+          gain.gain.setValueAtTime(0.12, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start(now);
+          osc.stop(now + 0.08);
+        } else if (type === 'correct') {
+          [523.25, 659.25, 783.99, 1046.5].forEach((freq, i) => {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(freq, now + i * 0.09);
+            gain.gain.setValueAtTime(0.2, now + i * 0.09);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.09 + 0.25);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(now + i * 0.09);
+            osc.stop(now + i * 0.09 + 0.25);
+          });
+        } else if (type === 'wrong') {
+          [300, 220].forEach((freq, i) => {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(freq, now + i * 0.15);
+            gain.gain.setValueAtTime(0.15, now + i * 0.15);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.15 + 0.22);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(now + i * 0.15);
+            osc.stop(now + i * 0.15 + 0.22);
+          });
+        }
+      } catch (e) {}
+    }
+
+    function toggleSound() {
+      soundEnabled = !soundEnabled;
+      document.getElementById('btnSound').innerHTML = soundEnabled
+        ? '🔊 Âm thanh: Bật'
+        : '🔇 Âm thanh: Tắt';
+      playSound('click');
+    }
+
+    function toggleRules() {
+      playSound('click');
+      alert(
+        "📜 LUẬT CHƠI ĐẦM SEN LƯỢNG GIÁC:\n\n" +
+        "1. Gồm 5 câu hỏi nhận dạng tỉ số lượng giác sin, cos, tan, cot.\n" +
+        "2. Ở mỗi câu, học sinh CHỈ ĐƯỢC CHỌN 1 LẦN DUY NHẤT.\n" +
+        "3. Chọn xong hệ thống khóa đáp án ngay, báo Đúng (+20 điểm) hoặc Sai kèm công thức giải thích chi tiết rồi chuyển sang câu tiếp theo!"
+      );
+    }
+
+    function renderLotusTracker() {
+      const tracker = document.getElementById('lotusTracker');
+      tracker.innerHTML = '';
+      for (let i = 0; i < QUESTIONS.length; i++) {
+        const state = lotusStates[i] || 'pending';
+        const isCurrent = i === currentIndex;
+        let svgHTML = '';
+
+        if (state === 'correct') {
+          svgHTML = `
+            <svg class="lotus-step ${isCurrent ? 'active' : ''}" viewBox="0 0 64 64">
+              <ellipse cx="32" cy="52" rx="24" ry="7" fill="#2ecc71"/>
+              <path d="M32 12 C22 24 20 40 32 48 C44 40 42 24 32 12 Z" fill="#ff4d8d"/>
+              <path d="M32 48 C16 44 10 28 18 18 C24 26 24 38 32 48 Z" fill="#ff85b3"/>
+              <path d="M32 48 C48 44 54 28 46 18 C40 26 40 38 32 48 Z" fill="#ff85b3"/>
+              <circle cx="32" cy="30" r="4" fill="#ffd13b"/>
+            </svg>`;
+        } else if (state === 'wrong') {
+          svgHTML = `
+            <svg class="lotus-step ${isCurrent ? 'active' : ''}" viewBox="0 0 64 64">
+              <ellipse cx="32" cy="52" rx="22" ry="6" fill="#95a5a6"/>
+              <path d="M32 16 C23 28 23 42 32 48 C41 42 41 28 32 16 Z" fill="#ff9f43"/>
+            </svg>`;
+        } else {
+          svgHTML = `
+            <svg class="lotus-step ${isCurrent ? 'active' : ''}" viewBox="0 0 64 64">
+              <ellipse cx="32" cy="52" rx="22" ry="6" fill="#27ae60"/>
+              <path d="M32 16 C24 28 24 42 32 48 C40 42 40 28 32 16 Z" fill="#f8a5c2" opacity="0.75"/>
+            </svg>`;
+        }
+        tracker.innerHTML += svgHTML;
+      }
+    }
+
+    function startGame() {
+      playSound('click');
+      currentIndex = 0;
+      score = 0;
+      lotusStates = new Array(QUESTIONS.length).fill('pending');
+      document.getElementById('scoreDisplay').innerHTML = `⭐ Điểm: 0 / 100`;
+
+      document.getElementById('screenStart').classList.add('hidden');
+      document.getElementById('screenEnd').classList.add('hidden');
+      document.getElementById('screenQuiz').classList.remove('hidden');
+
+      loadQuestion();
+    }
+
+    function loadQuestion() {
+      isQuestionLocked = false;
+      const q = QUESTIONS[currentIndex];
+
+      document.getElementById('questionTag').innerHTML = q.level;
+      document.getElementById('questionText').innerHTML = `<div>${q.question}</div>`;
+      document.getElementById('figureContainer').innerHTML = drawTriangleSVG(q.svgConfig);
+
+      const hintBox = document.getElementById('hintBox');
+      hintBox.style.display = 'none';
+      hintBox.innerHTML = '';
+
+      const expBox = document.getElementById('explanationBox');
+      expBox.style.display = 'none';
+      expBox.className = 'feedback-panel';
+
+      document.getElementById('btnShowHint').classList.remove('hidden');
+      document.getElementById('btnNextQuestion').classList.add('hidden');
+
+      const letters = ['A', 'B', 'C', 'D'];
+      const container = document.getElementById('optionsContainer');
+      container.innerHTML = '';
+
+      q.options.forEach((optHTML, idx) => {
+        const btn = document.createElement('button');
+        btn.className = 'option-btn';
+        btn.innerHTML = `
+          <span class="opt-letter">${letters[idx]}</span>
+          <span>${optHTML}</span>
+        `;
+        btn.onclick = () => selectAnswer(idx);
+        container.appendChild(btn);
+      });
+
+      renderLotusTracker();
+    }
+
+    function showHint() {
+      if (isQuestionLocked) return;
+      playSound('click');
+      const q = QUESTIONS[currentIndex];
+      const hintBox = document.getElementById('hintBox');
+      hintBox.innerHTML = `<strong>💡 Gợi ý:</strong> ${q.hint}`;
+      hintBox.style.display = 'block';
+    }
+
+    function selectAnswer(selectedIndex) {
+      // Khóa ngay ở lần chọn đầu tiên, không cho chọn lại
+      if (isQuestionLocked) return;
+      isQuestionLocked = true;
+
+      const q = QUESTIONS[currentIndex];
+      const buttons = document.querySelectorAll('.option-btn');
+      const expBox = document.getElementById('explanationBox');
+      const letters = ['A', 'B', 'C', 'D'];
+
+      buttons.forEach((btn, idx) => {
+        btn.disabled = true;
+        if (idx === q.correct) {
+          btn.classList.add('correct');
+        } else if (idx === selectedIndex && selectedIndex !== q.correct) {
+          btn.classList.add('wrong');
+        } else {
+          btn.classList.add('dimmed');
+        }
+      });
+
+      if (selectedIndex === q.correct) {
+        score += 20;
+        lotusStates[currentIndex] = 'correct';
+        document.getElementById('scoreDisplay').innerHTML = `⭐ Điểm: ${score} / 100`;
+        playSound('correct');
+
+        expBox.className = 'feedback-panel feedback-correct';
+        expBox.innerHTML = `
+          <strong>✅ Chính xác! (+20 điểm) — Đáp án đúng là ${letters[q.correct]}.</strong><br/>
+          <span>📐 <strong>Giải thích:</strong> ${q.explanation}</span>
+        `;
+      } else {
+        lotusStates[currentIndex] = 'wrong';
+        playSound('wrong');
+
+        expBox.className = 'feedback-panel feedback-wrong';
+        expBox.innerHTML = `
+          <strong>❌ Chưa chính xác! Đáp án đúng phải là ${letters[q.correct]}.</strong><br/>
+          <span>📐 <strong>Giải thích:</strong> ${q.explanation}</span>
+        `;
+      }
+
+      expBox.style.display = 'block';
+      document.getElementById('btnShowHint').classList.add('hidden');
+
+      const nextBtn = document.getElementById('btnNextQuestion');
+      nextBtn.innerHTML = (currentIndex < QUESTIONS.length - 1)
+        ? 'Câu tiếp theo ➔'
+        : 'Xem tổng kết ➔';
+      nextBtn.classList.remove('hidden');
+
+      renderLotusTracker();
+    }
+
+    function nextQuestion() {
+      playSound('click');
+      if (currentIndex < QUESTIONS.length - 1) {
+        currentIndex++;
+        loadQuestion();
+      } else {
+        showEndScreen();
+      }
+    }
+
+    function showEndScreen() {
+      document.getElementById('screenQuiz').classList.add('hidden');
+      document.getElementById('screenEnd').classList.remove('hidden');
+      document.getElementById('finalScoreText').innerHTML = `Tổng điểm đạt được: ${score} / 100 điểm`;
+      playSound('correct');
+    }
+  </script>
+</body>
+</html>
